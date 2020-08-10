@@ -47,10 +47,13 @@ def PrintOut(State_Change, Status, analog_value):
 	print('Analog Value is: {}\n Status is: {}'.format(analog_value, Status))
 	time.sleep(5)
 
+def get_analog_value():
+	return  adc_handler(Moisture_Sensor)
+
 def main():
 	while True:	#always run
 	#TODO Configure DeadBand + Dry / Moist Levels
-		analog_value = adc_handler(Moisture_Sensor)
+		analog_value = get_analog_value()
 
 		if analog_value <= Dry:
 			GPIO.output(LED, GPIO.HIGH) #Turn on LED
@@ -60,6 +63,7 @@ def main():
 			while analog_value < Moist: #Run until Moist
 				PrintOut(State_Change, Status, analog_value)
 				State_Change = 0
+				get_analog_value()
 
 		if analog_value >= Moist:
 			GPIO.output(LED, GPIO.LOW) #Turn off LED
@@ -69,6 +73,7 @@ def main():
 			while analog_value > Dry: #Run until Dry
 				PrintOut(State_Change, Status, analog_value)
 				State_Change = 0
+				get_analog_value()
 
 #GPIO.add_event_detect(LED, GPIO.BOTH) ## Not using this callback method
 
