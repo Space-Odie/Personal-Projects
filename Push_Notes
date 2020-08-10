@@ -1,0 +1,12 @@
+1) git init
+2) git add .
+3) git commit -m 'comment'
+4) git remote add origin https://github.com/Space-Odie/Personal-Projects.git
+5) git remote -v
+6) git push origin master
+
+#to synch with master 
+7) git pull origin master
+
+#to push to master
+8) git push -f origin master
