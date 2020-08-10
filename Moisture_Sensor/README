@@ -1,0 +1,7 @@
+GreenPI Bot
+
+Input = analog moisture sensor
+output = Red LED for DRY
+       	Green LED for Moist
+
+Reason: Will indicate when a plant needs to be watered. 

@@ -13,14 +13,19 @@ import spidev
 #initialize Pi
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
-delay = 0.5
+delay = 1.5
 
-#initialize LED
-LED = 7
-GPIO.setup(LED, GPIO.OUT, initial = GPIO.LOW)
-LED_State = GPIO.input(LED)
+#initialize GREEN LED (Moist, L1)
+L1 = 7
+GPIO.setup(L1, GPIO.OUT, initial = GPIO.LOW)
 
-#Initialize Moisture Sensor 
+
+#initialize RED LED (DRY, L2)
+L2 = 11
+GPIO.setup(L2, GPIO.OUT, initial = GPIO.LOW)
+
+
+#initialize Moisture Sensor 
 Moisture_Sensor = 0
 spi = spidev.SpiDev()
 spi.open(0, 0)
@@ -29,7 +34,7 @@ Moist = 500
 State_Change = []
 
 #read analog to digital convertor
-def adc_handler(adcnum):
+def ADC_Handler(adcnum):
 	if adcnum > 7 or adcnum < 0:
 		return -1
 	r = spi.xfer2([1, 8 + adcnum <<4, 0])
@@ -39,42 +44,48 @@ def adc_handler(adcnum):
 	return data
 
 #print out values for user
-def PrintOut(State_Change, Status, analog_value):
+def PrintOut(State_Change, Status, moisture_level):
 	if State_Change == True:
-		print('Light is now ON' if LED_State == True 
-		else 'Light is now OFF')
-	print('---------------------')
-	print('Analog Value is: {}\n Status is: {}'.format(analog_value, Status))
-	time.sleep(5)
+	
+		print('Green Light is now ON' if GPIO.input(L1) == True 
+		else 'Green Light is now OFF')
 
-def get_analog_value():
-	return  adc_handler(Moisture_Sensor)
+		print('Red Light is now ON' if GPIO.input(L2) == True
+		else 'Red Light is now OFF')
+
+	print('---------------------')
+	print('Moisture Value is: {}\n Status is: {}'.format(moisture_level, Status))
+	time.sleep(delay)
+
+def Get_Analog_Value():
+	return  ADC_Handler(Moisture_Sensor)
 
 def main():
 	while True:	#always run
 	#TODO Configure DeadBand + Dry / Moist Levels
-		analog_value = get_analog_value()
+		Moisture_Level = Get_Analog_Value()
 
-		if analog_value <= Dry:
-			GPIO.output(LED, GPIO.HIGH) #Turn on LED
+		if Moisture_Level <= Dry:
+			GPIO.output(L2, GPIO.HIGH) #Turn on Dry LED 
+			GPIO.output(L1, GPIO.LOW)  #Turn off Moist LED
 			Status = 'Dry'
 			State_Change = 1
 
-			while analog_value < Moist: #Run until Moist
-				PrintOut(State_Change, Status, analog_value)
+			while Moisture_Level < Moist: #Run until Moist
+				PrintOut(State_Change, Status, Moisture_Level)
 				State_Change = 0
-				get_analog_value()
+				Moisture_Level = Get_Analog_Value()
 
-		if analog_value >= Moist:
-			GPIO.output(LED, GPIO.LOW) #Turn off LED
+		if Moisture_Level >= Moist:
+			GPIO.output(L2, GPIO.LOW)  #Turn off Dry LED
+			GPIO.output(L1, GPIO.HIGH) #Turn on Moist LED
 			Status = 'Moist'
 			State_Change = 1
 
-			while analog_value > Dry: #Run until Dry
-				PrintOut(State_Change, Status, analog_value)
+			while Moisture_Level > Dry: #Run until Dry
+				PrintOut(State_Change, Status, Moisture_Level)
 				State_Change = 0
-				get_analog_value()
+				Moisture_Level = Get_Analog_Value()
 
-#GPIO.add_event_detect(LED, GPIO.BOTH) ## Not using this callback method
 
 if __name__== '__main__': main()
